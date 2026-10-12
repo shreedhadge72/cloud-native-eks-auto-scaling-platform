@@ -1,4 +1,5 @@
+
 function showMessage() {
-    document.getElementById("status").innerText =
-        "Application is running successfully!";
+  document.getElementById("message").textContent =
+    "Your Cloud-Native EKS frontend is responding!";
 }
