@@ -1,0 +1,1 @@
+Deploy vpc.yaml first, then eks.yaml. In the second stack, VpcStackName must match the first stack's name. Set AdminPublicCidr to your current public IP with /32; do not use 0.0.0.0/0. This is a learning/demo public-subnet design, not production hardened. Check AWS pricing before creating resources.

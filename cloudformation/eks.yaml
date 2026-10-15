@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EKS cluster, managed node group and ECR repository. Demo template; review charges before deploying.
+Parameters:
+  VpcStackName:
+    Type: String
+    Description: CloudFormation stack name used for vpc.yaml
+  AdminPublicCidr:
+    Type: String
+    Description: Your public IP with /32, e.g. 203.0.113.10/32 (replace with your actual IP)
+  ClusterName:
+    Type: String
+    Default: cloud-native-eks-cluster
+  NodeInstanceType:
+    Type: String
+    Default: t3.medium
+    AllowedValues: [t3.medium, t3.large, m5.large]
+Resources:
+  ClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: eks.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+  NodeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  Cluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      RoleArn: !GetAtt ClusterRole.Arn
+      ResourcesVpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetA'
+          - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetB'
+        EndpointPublicAccess: true
+        EndpointPrivateAccess: false
+        PublicAccessCidrs: [!Ref AdminPublicCidr]
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    DependsOn: Cluster
+    Properties:
+      ClusterName: !Ref Cluster
+      NodegroupName: frontend-nodes
+      NodeRole: !GetAtt NodeRole.Arn
+      Subnets:
+        - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetA'
+        - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetB'
+      InstanceTypes: [!Ref NodeInstanceType]
+      ScalingConfig: {MinSize: 2, DesiredSize: 2, MaxSize: 3}
+  FrontendRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: cloud-native-eks-frontend
+      ImageScanningConfiguration: {ScanOnPush: true}
+Outputs:
+  ClusterName: {Value: !Ref Cluster}
+  ECRRepositoryUri: {Value: !GetAtt FrontendRepository.RepositoryUri}
