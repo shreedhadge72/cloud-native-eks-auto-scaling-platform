@@ -1,0 +1,18 @@
+version: 0.2
+env:
+  variables:
+    IMAGE_REPO_NAME: cloud-native-eks-frontend
+phases:
+  pre_build:
+    commands:
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_URI
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+  build:
+    commands:
+      - docker build -f docker/Dockerfile -t $ECR_URI/$IMAGE_REPO_NAME:$IMAGE_TAG -t $ECR_URI/$IMAGE_REPO_NAME:latest .
+  post_build:
+    commands:
+      - docker push $ECR_URI/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $ECR_URI/$IMAGE_REPO_NAME:latest
