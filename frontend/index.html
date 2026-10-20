@@ -3,26 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud-Native EKS Platform</title>
+  <title>Cloud-Native EKS Auto-Scaling Platform</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="hero">
+    <h1>Cloud-Native EKS Auto-Scaling Platform</h1>
+    <p class="subtitle">Containerized Application on AWS</p>
+  </header>
+
   <main class="container">
-    <p class="tag">AWS CLOUD PROJECT</p>
-    <h1>Cloud-Native EKS</h1>
-    <h2>Auto-Scaling Platform</h2>
-    <p>
-      A containerized frontend application running on
-      Amazon EKS and Kubernetes.
-    </p>
-    <div class="status">
-      <span class="dot"></span>
-      Frontend is responding
-    </div>
-    <button onclick="showMessage()">Check Application</button>
-    <p id="message"></p>
-    <footer>Docker · Kubernetes · Amazon Web Services</footer>
+    <section class="card">
+      <h2>About the Project</h2>
+      <p>This project runs a containerized Nginx website on Amazon EKS. Images are built by AWS CodeBuild and stored in Amazon ECR. An Application Load Balancer exposes the site, and a Kubernetes Horizontal Pod Autoscaler adjusts the number of Pods based on CPU usage.</p>
+    </section>
+
+    <section class="card">
+      <h2>Application Status</h2>
+      <p>Status: <span id="status" class="badge">Checking...</span></p>
+      <p>Response time: <span id="latency">-</span></p>
+      <button id="checkBtn">Check Application Response</button>
+      <p id="result" class="result"></p>
+    </section>
   </main>
+
+  <footer>
+    <span>Docker</span> &bull; <span>Kubernetes</span> &bull; <span>AWS</span>
+    <p>Project by Shree Dhadge</p>
+  </footer>
   <script src="script.js"></script>
 </body>
 </html>
