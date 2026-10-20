@@ -3,34 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cloud-Native EKS Auto-Scaling Platform: a containerized application on AWS using Docker, Kubernetes and Amazon EKS.">
   <title>Cloud-Native EKS Auto-Scaling Platform</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="hero">
-    <h1>Cloud-Native EKS Auto-Scaling Platform</h1>
-    <p class="subtitle">Containerized Application on AWS</p>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top"><span class="brand-dot"></span>EKS Auto-Scaling Platform</a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#status">Status</a>
+        <a href="#stack">Tech Stack</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <h2>About the Project</h2>
-      <p>This project runs a containerized Nginx website on Amazon EKS. Images are built by AWS CodeBuild and stored in Amazon ECR. An Application Load Balancer exposes the site, and a Kubernetes Horizontal Pod Autoscaler adjusts the number of Pods based on CPU usage.</p>
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <p class="eyebrow">Docker &nbsp;&bull;&nbsp; Kubernetes &nbsp;&bull;&nbsp; AWS</p>
+        <h1>Cloud-Native EKS<br>Auto-Scaling Platform</h1>
+        <p class="subtitle">Containerized Application on AWS</p>
+        <p class="lead">A containerized website served by Nginx and run on Amazon EKS. Traffic enters through an Application Load Balancer, and Kubernetes adjusts the number of Pods automatically based on CPU usage.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#status">Check Live Status</a>
+          <a class="btn btn-ghost" href="https://github.com/shreedhadge72/cloud-native-eks-auto-scaling-platform" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Application Status</h2>
-      <p>Status: <span id="status" class="badge">Checking...</span></p>
-      <p>Response time: <span id="latency">-</span></p>
-      <button id="checkBtn">Check Application Response</button>
-      <p id="result" class="result"></p>
+    <!-- OVERVIEW -->
+    <section id="overview" class="section">
+      <div class="wrap">
+        <h2>Project Overview</h2>
+        <p class="section-sub">What this platform demonstrates</p>
+        <div class="grid-3">
+          <article class="card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Zm0 2.3 6.6 3.7L12 11.7 5.4 8 12 4.3ZM5 9.7l6 3.4v6.6l-6-3.3V9.7Zm8 10V13l6-3.3v6.7l-6 3.3Z"/></svg>
+            </div>
+            <h3>Containerized</h3>
+            <p>The website is packaged as a Docker image with Nginx, so it runs the same way on every machine and every node.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 19h16v2H4v-2Zm1-3 4-5 3 3 5-7 3 4-1.6 1.2L17 10.5l-5 7-3-3-2.4 3L5 16Z"/></svg>
+            </div>
+            <h3>Auto-Scaling</h3>
+            <p>A Horizontal Pod Autoscaler adds or removes Pods based on CPU utilization, so the application follows demand.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M11 2h2v4h-2V2Zm-6 8h4v4H5v-4Zm10 0h4v4h-4v-4Zm-5 6h4v4h-4v-4ZM11 6h2v2h4v2h-2V8H9v2H7V8h4V6Zm-1 8h2v2h-2v-2Z"/></svg>
+            </div>
+            <h3>Load Balanced</h3>
+            <p>An AWS Application Load Balancer spreads visitors across the running Pods, and Kubernetes replaces any Pod that fails.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture" class="section alt">
+      <div class="wrap">
+        <h2>Architecture</h2>
+        <p class="section-sub">How a visitor reaches the application, and how new code gets there</p>
+
+        <h3 class="flow-title">Request flow</h3>
+        <ol class="flow" aria-label="Request flow">
+          <li><span>1</span>User</li>
+          <li><span>2</span>Application Load Balancer</li>
+          <li><span>3</span>Kubernetes Service</li>
+          <li><span>4</span>Pods</li>
+          <li><span>5</span>Nginx</li>
+        </ol>
+
+        <h3 class="flow-title">Deployment pipeline</h3>
+        <ol class="flow" aria-label="Deployment pipeline">
+          <li><span>1</span>GitHub</li>
+          <li><span>2</span>AWS CodeBuild</li>
+          <li><span>3</span>Amazon ECR</li>
+          <li><span>4</span>Amazon EKS</li>
+          <li><span>5</span>Load Balancer</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- STATUS -->
+    <section id="status" class="section">
+      <div class="wrap">
+        <h2>Application Status</h2>
+        <p class="section-sub">A real request from your browser to this server, measured just now</p>
+
+        <div class="status-panel">
+          <div class="status-head">
+            <span id="statusBadge" class="badge badge-wait">Checking...</span>
+            <button id="checkBtn" class="btn btn-primary" type="button">Run Check Again</button>
+          </div>
+
+          <dl class="metrics">
+            <div class="metric"><dt>HTTP status</dt><dd id="mStatus">-</dd></div>
+            <div class="metric"><dt>Response time</dt><dd id="mLatency">-</dd></div>
+            <div class="metric"><dt>Web server</dt><dd id="mServer">-</dd></div>
+            <div class="metric"><dt>Last checked</dt><dd id="mTime">-</dd></div>
+          </dl>
+
+          <p id="statusNote" class="status-note"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TECH STACK -->
+    <section id="stack" class="section alt">
+      <div class="wrap">
+        <h2>Technology Stack</h2>
+        <p class="section-sub">Tools used to build and run this project</p>
+        <ul class="chips">
+          <li>Docker</li><li>Nginx</li><li>Kubernetes</li><li>Amazon EKS</li><li>Amazon EC2</li>
+          <li>Amazon ECR</li><li>AWS CodeBuild</li><li>AWS CloudFormation</li><li>Amazon VPC</li>
+          <li>AWS IAM</li><li>Application Load Balancer</li><li>Horizontal Pod Autoscaler</li><li>GitHub</li>
+        </ul>
+
+        <div class="info-grid">
+          <div class="info"><span>Student</span><strong>Shree Dhadge</strong></div>
+          <div class="info"><span>Course</span><strong>B.Sc. Cloud Computing</strong></div>
+          <div class="info"><span>Cloud provider</span><strong>Amazon Web Services</strong></div>
+          <div class="info"><span>Region</span><strong>Asia Pacific (Mumbai)</strong></div>
+        </div>
+        <p class="scope">This is an educational deployment: a static frontend served over HTTP, used to demonstrate container orchestration and auto-scaling on Amazon EKS.</p>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <span>Docker</span> &bull; <span>Kubernetes</span> &bull; <span>AWS</span>
-    <p>Project by Shree Dhadge</p>
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <p class="footer-tech"><span>Docker</span><i>&bull;</i><span>Kubernetes</span><i>&bull;</i><span>AWS</span></p>
+      <p class="footer-credit">Cloud-Native EKS Auto-Scaling Platform &nbsp;|&nbsp; Project by Shree Dhadge &nbsp;|&nbsp; <span id="year"></span></p>
+    </div>
   </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
