@@ -1,19 +1,42 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: EKS cluster, managed node group and ECR repository. Demo template; review charges before deploying.
+Description: EKS cluster, managed node group, IAM roles and ECR repository
+
 Parameters:
-  VpcStackName:
+  ProjectName:
     Type: String
-    Description: CloudFormation stack name used for vpc.yaml
-  AdminPublicCidr:
-    Type: String
-    Description: Your public IP with /32, e.g. 203.0.113.10/32 (replace with your actual IP)
+    Default: eks-autoscale
   ClusterName:
     Type: String
-    Default: cloud-native-eks-cluster
+    Default: eks-autoscale-cluster
+    Description: Must match ClusterName used in vpc.yaml
+  VpcStackName:
+    Type: String
+    Default: eks-autoscale-vpc
+    Description: Name of the deployed VPC stack
+  KubernetesVersion:
+    Type: String
+    AllowedPattern: '^1\.[0-9]{2}$'
+    Description: EKS version in standard support, for example 1.xx (check the EKS console)
+  MyIpCidr:
+    Type: String
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/32$'
+    Description: Your public IP in /32 format. Only this IP can reach the EKS API from the internet
   NodeInstanceType:
     Type: String
     Default: t3.medium
-    AllowedValues: [t3.medium, t3.large, m5.large]
+  NodeDesiredSize:
+    Type: Number
+    Default: 2
+  NodeMinSize:
+    Type: Number
+    Default: 2
+  NodeMaxSize:
+    Type: Number
+    Default: 4
+  EcrRepositoryName:
+    Type: String
+    Default: cloud-native-eks-frontend
+
 Resources:
   ClusterRole:
     Type: AWS::IAM::Role
@@ -22,10 +45,30 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Principal: {Service: eks.amazonaws.com}
+            Principal:
+              Service: eks.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+  Cluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      Version: !Ref KubernetesVersion
+      RoleArn: !GetAtt ClusterRole.Arn
+      ResourcesVpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-PublicSubnet1Id
+          - Fn::ImportValue: !Sub ${VpcStackName}-PublicSubnet2Id
+        EndpointPublicAccess: true
+        EndpointPrivateAccess: true
+        PublicAccessCidrs:
+          - !Ref MyIpCidr
+      AccessConfig:
+        AuthenticationMode: API_AND_CONFIG_MAP
+        BootstrapClusterCreatorAdminPermissions: true
+
   NodeRole:
     Type: AWS::IAM::Role
     Properties:
@@ -33,41 +76,52 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Principal: {Service: ec2.amazonaws.com}
+            Principal:
+              Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-  Cluster:
-    Type: AWS::EKS::Cluster
-    Properties:
-      Name: !Ref ClusterName
-      RoleArn: !GetAtt ClusterRole.Arn
-      ResourcesVpcConfig:
-        SubnetIds:
-          - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetA'
-          - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetB'
-        EndpointPublicAccess: true
-        EndpointPrivateAccess: false
-        PublicAccessCidrs: [!Ref AdminPublicCidr]
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
   NodeGroup:
     Type: AWS::EKS::Nodegroup
-    DependsOn: Cluster
     Properties:
       ClusterName: !Ref Cluster
-      NodegroupName: frontend-nodes
+      NodegroupName: !Sub ${ProjectName}-nodegroup
       NodeRole: !GetAtt NodeRole.Arn
       Subnets:
-        - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetA'
-        - Fn::ImportValue: !Sub '${VpcStackName}-PublicSubnetB'
-      InstanceTypes: [!Ref NodeInstanceType]
-      ScalingConfig: {MinSize: 2, DesiredSize: 2, MaxSize: 3}
-  FrontendRepository:
+        - Fn::ImportValue: !Sub ${VpcStackName}-PublicSubnet1Id
+        - Fn::ImportValue: !Sub ${VpcStackName}-PublicSubnet2Id
+      AmiType: AL2023_x86_64_STANDARD
+      CapacityType: ON_DEMAND
+      InstanceTypes:
+        - !Ref NodeInstanceType
+      DiskSize: 20
+      ScalingConfig:
+        MinSize: !Ref NodeMinSize
+        DesiredSize: !Ref NodeDesiredSize
+        MaxSize: !Ref NodeMaxSize
+
+  EcrRepository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: cloud-native-eks-frontend
-      ImageScanningConfiguration: {ScanOnPush: true}
+      RepositoryName: !Ref EcrRepositoryName
+      EmptyOnDelete: true
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 10 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}
+
 Outputs:
-  ClusterName: {Value: !Ref Cluster}
-  ECRRepositoryUri: {Value: !GetAtt FrontendRepository.RepositoryUri}
+  ClusterName:
+    Value: !Ref Cluster
+  ClusterEndpoint:
+    Value: !GetAtt Cluster.Endpoint
+  NodeRoleArn:
+    Value: !GetAtt NodeRole.Arn
+  EcrRepositoryUri:
+    Value: !GetAtt EcrRepository.RepositoryUri
+  EcrRepositoryName:
+    Value: !Ref EcrRepository
