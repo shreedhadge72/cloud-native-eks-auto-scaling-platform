@@ -64,7 +64,7 @@
 
 ## Architecture
 
-![Architecture diagram](Architecture/architecture-diagram.png)
+![Architecture diagram](Architecture/Architecture-diagram.png)
 *Architecture as deployed. The diagrams below show the same design in text-based form.*
 
 ### Runtime architecture
