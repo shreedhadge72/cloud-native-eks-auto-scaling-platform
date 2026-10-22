@@ -286,24 +286,24 @@ kubectl rollout status deployment/frontend
 
 ### AWS infrastructure
 
-![CloudFormation stacks](screenshots/07-stacks.png)
+![CloudFormation stacks](screenshots/06-stacks.png)
 *CloudFormation stacks for the VPC, the EKS cluster and the load balancer controller service account.*
 
-![EKS node group](screenshots/08-eks-nodes.png)
+![EKS node group](screenshots/07-eks-nodes.png)
 *The managed node group is Active, with 2 `t3.medium` nodes Ready.*
 
-![Application Load Balancer](screenshots/11-load-balancer.png)
+![Application Load Balancer](screenshots/10-load-balancer.png)
 *An internet-facing Application Load Balancer, Active across 2 Availability Zones.*
 
-![Target group health](screenshots/12-alb-targets.png)
+![Target group health](screenshots/11-alb-targets.png)
 *The target group shows 2 of 2 Pod targets healthy.*
 
 ### Build pipeline
 
-![CodeBuild build](screenshots/09-codebuild.png)
+![CodeBuild build](screenshots/08-codebuild.png)
 *AWS CodeBuild building the Docker image from GitHub (build Succeeded).*
 
-![Amazon ECR images](screenshots/10-ecr.png)
+![Amazon ECR images](screenshots/09-ecr.png)
 *Images stored in Amazon ECR, tagged by commit ID and `latest`.*
 
 ### Resilience and scaling tests
